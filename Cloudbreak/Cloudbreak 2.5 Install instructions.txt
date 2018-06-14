@@ -1,0 +1,79 @@
+
+
+
+# prerequisite 
+
+sudo -i
+
+yum -y install net-tools ntp wget lsof unzip tar iptables-services
+systemctl enable ntpd && systemctl start ntpd
+systemctl disable firewalld && systemctl stop firewalld
+
+iptables --flush INPUT && \
+iptables --flush FORWARD && \
+service iptables save
+
+sed -i --follow-symlinks 's/^SELINUX=.*/SELINUX=disabled/g' /etc/sysconfig/selinux
+
+
+cat > /etc/yum.repos.d/docker.repo <<"EOF"
+[dockerrepo]
+name=Docker Repository
+baseurl=https://yum.dockerproject.org/repo/main/centos/7
+enabled=1
+gpgcheck=1
+gpgkey=https://yum.dockerproject.org/gpg
+EOF
+
+
+
+yum install -y docker-engine-1.9.1 docker-engine-selinux-1.9.1
+systemctl start docker
+systemctl enable docker
+
+
+
+yum install epel-release -y
+yum install jq -y
+jq --version
+
+
+
+# install cloudbreak
+
+
+yum -y install unzip tar
+curl -Ls public-repo-1.hortonworks.com/HDP/cloudbreak/cloudbreak-deployer_2.5.0_$(uname)_x86_64.tgz | sudo tar -xz -C /bin cbd
+cbd --version
+
+
+mkdir cloudbreak-deployment
+cd cloudbreak-deployment
+
+
+### In the cloudbreak-deployment directory, create a file called Profile with the following content:
+
+export UAA_DEFAULT_SECRET=MY-SECRET
+export UAA_DEFAULT_USER_PW=MY-PASSWORD
+export UAA_DEFAULT_USER_EMAIL=MY-EMAIL
+
+
+# execute the following cmd lines
+
+cbd generate
+
+cbd pull
+cbd start
+
+cbd logs cloudbreak
+
+
+
+
+
+
+
+
+
+
+
